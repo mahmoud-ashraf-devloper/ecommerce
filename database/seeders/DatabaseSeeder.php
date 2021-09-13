@@ -3,6 +3,15 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
+use App\Models\{
+    User,
+    Admin,
+    Category,
+    Product,
+    Size
+};
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -13,6 +22,44 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        // \App\Models\User::factory(10)->create();
+        $userNum = 20;
+        $categoriesNum = 20;
+        $sizesNum = 20;
+        $productNum = 100;
+        $pivotProductSizeNum = $productNum * 2;
+        $pivotCategoryProductNum = $productNum * 2;
+
+
+        User::create([
+            'name' => 'User',
+            'email' => 'user@user.com',
+            'password' => Hash::make('password'),
+        ]);
+
+        Admin::create([
+            'name' => 'Admin',
+            'email' => 'admin@admin.com',
+            'password' => Hash::make('password'),
+        ]);
+
+        User::factory($userNum - 1)->create();
+        Category::factory($categoriesNum)->create();
+        Size::factory($sizesNum)->create();
+        Product::factory($productNum)->create();
+
+        for($i = 1; $i<= $pivotProductSizeNum; $i++){
+            DB::table('product_size')->insert([
+                'size_id' => rand(1, $sizesNum),
+                'product_id' => rand(1, $productNum),
+            ]);
+        }
+
+        for($i = 1; $i<= $pivotCategoryProductNum; $i++){
+
+            DB::table('category_product')->insert([
+                'product_id' => rand(1, $productNum),
+                'category_id' => rand(1, $categoriesNum),
+            ]);
+        }
     }
 }

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\Admin\Auth\LoginController;
 use App\Http\Controllers\Api\Admin\DashboardController;
+use App\Http\Controllers\Api\App\CategoryController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
@@ -25,4 +26,7 @@ Route::group([
     'as' => 'admin.',
 ], function(){
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('categories',[CategoryController::class, 'index'])->name('categories');
+    Route::post('categories/store',[CategoryController::class, 'store'])->name('category.store');
+    Route::get('categories/show/{category}',[CategoryController::class, 'show'])->name('category.show');
 });
