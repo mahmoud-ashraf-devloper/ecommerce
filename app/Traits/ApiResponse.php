@@ -15,11 +15,11 @@ trait ApiResponse
         ], $code);
     }
 
-    public function error($data, $message = 'Something Went Wrong' , $code=404)
+    public function error($data, $code = 404, $message = 'Something Went Wrong' )
     {
         return response()->json([
             'success'   => false,
-            'data'      => $data,
+            'errors'      => $data,
             'message'   => $message,
         ], $code);
     }

@@ -13,16 +13,18 @@ class LoginController extends Controller
 
     public function adminLogin(Request $request)
     {
-        $credentials = $request->only(['email', 'password']);
         $roles = [
             'email' => 'required|email',
             'password' => 'required|min:6',
         ];
 
-        $validator = Validator::make($credentials , $roles);
-
+        
+        $validator = Validator::make($request->all() , $roles);
+ 
+        $credentials = $request->only(['email', 'password']);
+        
         if($validator->fails()){
-            return $this->error($validator->errors(), 'Validation Error', 400);
+            return $this->error($validator->errors(), 400 ,'Validation Error');
         }
         if(auth()->guard('admin')->attempt($credentials)){
  
@@ -36,7 +38,7 @@ class LoginController extends Controller
 
             return $this->success($data);
         }else{
-            return $this->error([],'Email or Password is incorrect',401);
+            return $this->error([] , 401 ,'Email or Password is incorrect');
         }
 
     }

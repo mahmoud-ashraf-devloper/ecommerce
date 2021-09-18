@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\Admin\Auth\LoginController;
 use App\Http\Controllers\Api\Admin\DashboardController;
 use App\Http\Controllers\Api\App\CategoryController;
+use App\Http\Controllers\Api\App\ProductController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
@@ -28,5 +29,16 @@ Route::group([
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('categories',[CategoryController::class, 'index'])->name('categories');
     Route::post('categories/store',[CategoryController::class, 'store'])->name('category.store');
-    Route::get('categories/show/{category}',[CategoryController::class, 'show'])->name('category.show');
+
+
+
+    // Products
+    Route::post('products/store', [ProductController::class, 'store'])->name('add-new-product');
+    Route::post('products/update/images/{productImage}', [ProductController::class, 'updateProductImages']);
+    Route::post('products/update-set-main/images/{imageId}', [ProductController::class, 'setImageAsMainImage']);
+    Route::post('products/update/{productId}', [ProductController::class, 'updateProductData']);
+    Route::post('products/destroy/{productId}', [ProductController::class, 'destroy']);
+    Route::get('products/trashed', [ProductController::class, 'getTrashedProducts']);
+    Route::post('products/force-delete/{productId}', [ProductController::class, 'forceDelete']);
+
 });

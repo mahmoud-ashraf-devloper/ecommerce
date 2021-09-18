@@ -4,7 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class ProductResource extends JsonResource
+class ImageResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -16,11 +16,8 @@ class ProductResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'title' => $this->title,
-            'category' => CategoryResource::collection($this->whenLoaded('categories')),
-            'image' => ImageResource::collection($this->whenLoaded('productImages')),
-            'description' => $this->description,
-            'created_at' => $this->created_at->diffForHumans(),
-        ]; 
+            'url' => env('APP_URL').'storage/'.$this->image_url,
+            'isMain' => $this->is_main_image,
+        ];
     }
 }
