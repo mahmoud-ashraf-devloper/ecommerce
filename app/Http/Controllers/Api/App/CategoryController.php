@@ -19,13 +19,6 @@ class CategoryController extends Controller
 {
     use ApiResponse;
 
-/**
-*   if ($exception instanceof ModelNotFoundException && $request->wantsJson()) {
-*   return response()->json([
-*        'error' => 'Resource not found'
-*      ], 404);
-*   }
-*/
     /**
      * Display a listing of the resource.
      *
@@ -38,7 +31,7 @@ class CategoryController extends Controller
             return $this->success($categories);
 
         } catch (\Exception $ex) {
-            return $this->error($ex->getMessage(), 'Something went Wrong', $ex->getCode());
+            return $this->error($ex->getMessage(), 404,'Something went Wrong');
         }
 
     }
@@ -52,30 +45,53 @@ class CategoryController extends Controller
     public function store(Request $request)
     {
         
-        $rules = [
+        $validator = Validator::make($request->only(['category','parent_id']),[
             'category' => 'required|unique:categories|string|max:255',
             'parent_id' => 'exists:categories,id'
-        ];
-        
-        $validator = Validator::make($request->only(['category','parent_id']),$rules);
+        ]);
 
         if($validator->fails()){
-            return $this->error($validator->errors(),'Validation Error', 400);
+            return $this->error($validator->errors(), 400,'Validation Error');
         }
         try {
-            $createdUpdated = Category::create($request->all());
-            if($createdUpdated){
-                return $this->success(new CategoryResource($createdUpdated), 'Category Created Successfully');
+            $createdCategory = Category::create($validator->validated());
+            if($createdCategory){
+                return $this->success(new CategoryResource($createdCategory), 'Category Created Successfully');
             }else{
-                return $this->error([],'Server Error', 500);
+                return $this->error([], 500,'Server Error');
             }
         } catch (\Exception $ex) {
-            return $this->error($ex->getMessage(), 'Something went Wrong', $ex->getCode());
+            return $this->error($ex->getMessage(),500 ,'Something went Wrong');
         }
     }
 
     /**
-     * Display the specified resource.
+     * Display the Only Categories.
+     *
+     * @param  \App\Models\Category  $category
+     * @return \Illuminate\Http\Response
+     */
+    public function show($category)
+    {
+        try {
+            $category = Category::find($category);
+            if(!$category){
+                return $this->error([],404,'Category Not Found');
+            }
+
+            $response = [
+                'category' => New CategoryResource($category),
+            ]; 
+
+            return $this->success($response);
+        }
+        catch (\Exception $ex) {
+            return $this->error([], $ex->getMessage(),$ex->getCode());
+        }
+    }
+
+    /**
+     * Display a specified category with it's products.
      *
      * @param  \App\Models\Category  $category
      * @return \Illuminate\Http\Response
@@ -107,22 +123,35 @@ class CategoryController extends Controller
      * @param  \App\Models\Category  $category
      * @return \Illuminate\Http\Response
      */
-    public function edit(Category $category)
+    public function edit(Request $request,$categoryId)
     {
-        
+        try {
+            $category = Category::find($categoryId);
+            if(!$category){
+                return $this->error('Category Does not exists',404,'category not found');
+            }
+            if(empty($request->only(['category', 'parent_id']))){
+                return $this->error('There is nothing to update',400,'Validation error');
+            }
+            $validator = Validator::make($request->only(['category', 'parent_id']),[
+                'category' => 'unique:categories|string|max:255',
+                'parent_id' => 'exists:categories,id'
+            ]);
+            if($validator->fails()){
+                return $this->error($validator->errors(),400,'validation error');
+            }
+
+            $updated = $category->update($validator->validated());
+            if($updated){
+                return $this->success(new CategoryResource(Category::find($categoryId)->load(['parent'])),'Category Updated successfully');
+            }
+            return $this->error([],500,'sorry something went wrong please try again later');
+
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage());
+        }
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Category  $category
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Category $category)
-    {
-        //
-    }
 
     /**
      * Remove the specified resource from storage.
@@ -130,8 +159,45 @@ class CategoryController extends Controller
      * @param  \App\Models\Category  $category
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Category $category)
+    public function destroy($categoryId)
     {
-        //
+        try {
+            $category = Category::find($categoryId);
+            if(!$category){
+                return $this->error('Category Does not exists',404,'category not found');
+            }
+            if($category->delete()){
+                return $this->success([],'Category Deleted Successfully');
+            }
+            return $this->error([],500,'sorry something went wrong please try again later');
+
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage());
+        }
     }
+
+    /**
+     * Remove the specified resource from storage.
+     *
+     * @param  \App\Models\ $categoryId
+     * @return \Illuminate\Http\Response
+     */
+    public function forceDelete($categoryId)
+    {
+        try {
+            $category = Category::withTrashed()->where('id',$categoryId)->first();
+            if(!$category){
+                return $this->error('Category Does not exists',404,'category not found');
+            }
+            if($category->forceDelete()){
+                return $this->success([],'Category Deleted Successfully');
+            }
+            return $this->error([],500,'sorry something went wrong please try again later');
+
+        } catch (\Exception $e) {
+            return $this->error($e->getMessage());
+        }
+    }
+
+
 }

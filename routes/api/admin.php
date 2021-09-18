@@ -27,8 +27,7 @@ Route::group([
     'as' => 'admin.',
 ], function(){
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
-    Route::get('categories',[CategoryController::class, 'index'])->name('categories');
-    Route::post('categories/store',[CategoryController::class, 'store'])->name('category.store');
+
 
 
 
@@ -41,4 +40,10 @@ Route::group([
     Route::get('products/trashed', [ProductController::class, 'getTrashedProducts']);
     Route::post('products/force-delete/{productId}', [ProductController::class, 'forceDelete']);
 
+    // categories
+    Route::get('categories',[CategoryController::class, 'index'])->name('categories');
+    Route::post('categories/store',[CategoryController::class, 'store'])->name('category.store');
+    Route::post('categories/update/{categoryId}',[CategoryController::class, 'edit'])->name('category.update');
+    Route::post('categories/destroy/{categoryId}',[CategoryController::class, 'destroy'])->name('category.delete');
+    Route::post('categories/force-delete/{categoryId}',[CategoryController::class, 'forceDelete'])->name('category.forceDelete');
 });

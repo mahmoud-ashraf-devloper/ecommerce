@@ -218,7 +218,7 @@ class ProductController extends Controller
         } catch (\Illuminate\Database\QueryException $e) {
             return $this->error('There is no data provided to update', 400, 'validation error');
         } catch (\Exception $e) {
-            throw $e;
+            return $this->error($e->getMessage());
         }
     }
 
@@ -250,8 +250,12 @@ class ProductController extends Controller
 
     public function getTrashedProducts()
     {
-        $products = Product::with(['productImages'])->onlyTrashed()->get();
-        return ProductResource::collection($products);
+        try{
+            $products = Product::with(['productImages'])->onlyTrashed()->get();
+            return ProductResource::collection($products);
+        }catch (\Exception $e) {
+            return $this->error($e->getMessage());
+        }
     }
 
     public function forceDelete($productId)
