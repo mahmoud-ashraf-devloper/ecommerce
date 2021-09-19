@@ -22,7 +22,7 @@ class SizeFactory extends Factory
     public function definition()
     {
         return [
-            'size' => $this->faker->numberBetween(1,10),
+            'size' => 'size-'.$this->faker->numberBetween(1,10),
         ];
     }
 }

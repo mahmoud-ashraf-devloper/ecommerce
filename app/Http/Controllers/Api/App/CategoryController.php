@@ -3,17 +3,17 @@
 namespace App\Http\Controllers\Api\App;
 
 use App\Http\Controllers\Controller;
-use App\Http\Resources\CategoryCollection;
-use App\Http\Resources\CategoryResource;
-use App\Http\Resources\ProductCollection;
+use App\Http\Resources\{
+    CategoryResource,
+    CategoryCollection,
+    ProductCollection
+};
 use App\Models\Category;
 use App\Traits\ApiResponse;
-use Exception;
-use Facade\FlareClient\View;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+
 
 class CategoryController extends Controller
 {
@@ -27,7 +27,7 @@ class CategoryController extends Controller
     public function index()
     {
         try {
-            $categories = new CategoryCollection(Category::with('children')->paginate(env('CATEGORY_PAGINATION',10)));
+            $categories = new CategoryCollection(Category::with(['children'])->paginate(env('CATEGORY_PAGINATION',10)));
             return $this->success($categories);
 
         } catch (\Exception $ex) {
@@ -65,30 +65,6 @@ class CategoryController extends Controller
         }
     }
 
-    /**
-     * Display the Only Categories.
-     *
-     * @param  \App\Models\Category  $category
-     * @return \Illuminate\Http\Response
-     */
-    public function show($category)
-    {
-        try {
-            $category = Category::find($category);
-            if(!$category){
-                return $this->error([],404,'Category Not Found');
-            }
-
-            $response = [
-                'category' => New CategoryResource($category),
-            ]; 
-
-            return $this->success($response);
-        }
-        catch (\Exception $ex) {
-            return $this->error([], $ex->getMessage(),$ex->getCode());
-        }
-    }
 
     /**
      * Display a specified category with it's products.
@@ -96,15 +72,14 @@ class CategoryController extends Controller
      * @param  \App\Models\Category  $category
      * @return \Illuminate\Http\Response
      */
-    public function showCategoryWithProducts($category)
+    public function showCategoryWithProducts($categoryId)
     {
         try {
-            $category = Category::find($category)
-                        ->load(['products']);
+            $category = Category::find($categoryId);
             if(!$category){
-                return $this->error([],'Category Not Found');
+                return $this->error([],404,'Category Not Found');
             }
-
+            $category = $category->load(['products']);
             $response = [
                 'category' => New CategoryResource($category),
                 'products' => new ProductCollection($category->products()->paginate(env('PRODUCT_PAGINATION',10))),
@@ -113,7 +88,7 @@ class CategoryController extends Controller
             return $this->success($response);
         }
         catch (\Exception $ex) {
-            return $this->error([], $ex->getMessage(),$ex->getCode());
+            return $this->error([], 500 ,$ex->getMessage());
         }
     }
 

@@ -4,9 +4,11 @@ namespace App\Http\Controllers\Api\App;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\{
+    CategoryResource,
     ProductCollection,
     ProductResource,
-    ImageResource
+    ImageResource,
+    SizeResource,
 };
 use App\Models\{
     Product,
@@ -113,7 +115,6 @@ class ProductController extends Controller
     }
 
 
-
     /**
      * Display the specified resource.
      *
@@ -126,20 +127,19 @@ class ProductController extends Controller
             $product = Product::find($product);
             if($product){
                 $product =  new ProductResource($product->load(['categories', 'productImages','sizes']));
+                
                 $response = [
                     'product' => $product,
-                    // we will add sizes here when it's done
                 ];
                 return $this->success($response);
             }else {
                 return $this->error([], 404, 'Product Not found');
             }
         } catch (\Exception $e) {
-            return $this->error($e->getMessage());
+            return throw ($e);
         }
     }
 
-    // /products/update/images/{id}
     public function updateProductImages(Request $request, $productImage)
     {
         try {

@@ -14,6 +14,7 @@ class CreateProductSize extends Migration
     public function up()
     {
         Schema::create('product_size', function (Blueprint $table) {
+            $table->id();
             $table->unsignedBigInteger('product_id');
             $table->foreign('product_id')
                     ->references('id')
@@ -24,9 +25,12 @@ class CreateProductSize extends Migration
             $table->unsignedBigInteger('size_id');
             $table->foreign('size_id')
                     ->references('id')
-                    ->on('sizes')
+                    ->on('sizes')                    
                     ->onUpdate('cascade')
                     ->onDelete('cascade');
+
+            $table->unique(['product_id', 'size_id']);
+            $table->softDeletes();
         });
     }
 

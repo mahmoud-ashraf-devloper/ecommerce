@@ -17,10 +17,11 @@ class ProductResource extends JsonResource
         return [
             'id' => $this->id,
             'title' => $this->title,
-            'category' => CategoryResource::collection($this->whenLoaded('categories')),
-            'image' => ImageResource::collection($this->whenLoaded('productImages')),
             'description' => $this->description,
             'created_at' => $this->created_at->diffForHumans(),
+            'category' => CategoryResource::collection($this->whenLoaded('categories')),
+            'sizes'=> SizeResource::collection($this->whenLoaded('sizes')),
+            'image' => ImageResource::collection($this->whenLoaded('productImages')),
         ]; 
     }
 }

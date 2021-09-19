@@ -47,12 +47,12 @@ class DatabaseSeeder extends Seeder
         Size::factory($sizesNum)->create();
         Product::factory($productNum)->create();
 
-        for($i = 1; $i<= $pivotProductSizeNum; $i++){
-            DB::table('product_size')->insert([
-                'size_id' => rand(1, $sizesNum),
-                'product_id' => rand(1, $productNum),
-            ]);
-        }
+        // for($i = 1; $i<= $pivotProductSizeNum; $i++){
+        //     DB::table('product_size')->insert([
+        //         'size_id' => rand(1, $sizesNum),
+        //         'product_id' => rand(1, $productNum),
+        //     ]);
+        // }
 
         for($i = 1; $i<= $pivotCategoryProductNum; $i++){
 

@@ -3,85 +3,138 @@
 namespace App\Http\Controllers\Api\App;
 
 use App\Http\Controllers\Controller;
-
+use App\Http\Resources\SizeCollection;
+use App\Models\Product;
 use App\Models\Size;
+use App\Traits\ApiResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 
 class SizeController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
-    {
-        //
+use ApiResponse;
+
+public function addNewSize(Request $request)
+{
+    try {
+        $validator = Validator::make($request->only(['size','parent_id']),[
+            'size' => 'required|unique:sizes,size',
+            'parent_id' => 'exists:sizes,id'
+        ]);
+        if($validator->fails()){
+            return $this->error($validator->errors(),400,'validation error');
+        }
+
+        $createdSize = Size::create($validator->validated());
+        if($createdSize){
+            return $this->success($createdSize, 'Size created successfully');
+        }
+        return $this->error([],500);
+
+    } catch (\Exception $e) {
+        return $this->error($e->getMessage(),500);
+    }
+}
+
+public function editSize(Request $request,$sizeId)
+{
+    try {
+        $size = Size::find($sizeId);
+        if(! $size){
+            return $this->error([],404,'The size that you\'re trying to edit is not exists');
+        }
+        $validator = Validator::make($request->only(['size','parent_id']),[
+            'size' => 'required|unique:sizes,size',
+            'parent_id' => 'exists:sizes,id'
+        ]);
+        if($validator->fails()){
+            return $this->error($validator->errors(),400,'validation error');
+        }
+
+        $updated = $size->update($validator->validated());
+        if($updated){
+            return $this->success([], 'Size Updated successfully');
+        }
+        return $this->error([],500);
+
+    } catch (\Exception $e) {
+        return $this->error($e->getMessage(),500);
+    }
+}
+
+public function getAllSizes()
+{
+    try {
+        return $this->success(new SizeCollection(Size::with('children')->where('parent_id','=', null)->get()));
+    } catch (\Exception $e) {
+        return $this->error($e->getMessage(), 500);
+    }
+}
+
+/**
+ * Add Size to a Product
+ * 
+ * @return JsonResponse
+ **/
+
+ public function avilableSizesForProduct($productId)
+ {
+     try {
+         $product = Product::find($productId);
+         if(!$product){
+             return $this->error([],404, 'Product Does not Exists');
+         }
+         return $this->success(new SizeCollection($product->sizes));
+     } catch (\Exception $e) {
+        return $this->error($e->getMessage());
+     }
+ }
+ public function addSizeToProduct($productId, Request $request)
+ {
+    $product = Product::find($productId);
+    if(!$product){
+        return $this->error('This Product Does not exists',404);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
+    $validator = Validator::make($request->only('size_id'),[
+        'size_id' => 'required|exists:sizes,id'
+    ]);
+
+    if($validator->fails()){
+        return $this->error($validator->errors(), 400, "validation error");
     }
 
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        //
+    try{
+        $product->sizes()->attach($validator->validated());
+        return $this->success([],'Size added successfully');
+    }catch(\Exception $e){
+        if($e->getCode() == 23000){ //sql error "Duplicate entary"
+            return $this->error('Duplicate Entary', 400, 'Record is already exists');
+        }
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Size  $size
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Size $size)
-    {
-        //
-    }
+}
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Size  $size
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Size $size)
-    {
-        //
+public function deleteSizeFromProduct($productId, $sizeId)
+{
+    try {    
+        // if the product does not exists
+        $product = Product::find($productId);
+        if(!$product){
+            return $this->error([],404,'Product Does not Exists');
+        }
+        // if the size does not exists on the product
+        $size = $product->sizes->where('id', $sizeId)->first();
+        if(!$size){
+            return $this->error([],404, 'Size does not exists');
+        }
+        // delete the size and return success
+        if($size->delete()){
+            return $this->success([],'size deleted successfully');
+        }
+        return $this->error([]);
+    } catch (\Exception $e) {
+        return $this->error($e->getMessage(),500);
     }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Size  $size
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Size $size)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Size  $size
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Size $size)
-    {
-        //
-    }
+}
 }

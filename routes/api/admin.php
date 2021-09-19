@@ -4,9 +4,8 @@ use App\Http\Controllers\Api\Admin\Auth\LoginController;
 use App\Http\Controllers\Api\Admin\DashboardController;
 use App\Http\Controllers\Api\App\CategoryController;
 use App\Http\Controllers\Api\App\ProductController;
-use Illuminate\Http\Request;
+use App\Http\Controllers\Api\App\SizeController;
 use Illuminate\Support\Facades\Route;
-use SebastianBergmann\CodeCoverage\Report\Html\Dashboard;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,9 +27,6 @@ Route::group([
 ], function(){
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-
-
-
     // Products
     Route::post('products/store', [ProductController::class, 'store'])->name('add-new-product');
     Route::post('products/update/images/{productImage}', [ProductController::class, 'updateProductImages']);
@@ -46,4 +42,12 @@ Route::group([
     Route::post('categories/update/{categoryId}',[CategoryController::class, 'edit'])->name('category.update');
     Route::post('categories/destroy/{categoryId}',[CategoryController::class, 'destroy'])->name('category.delete');
     Route::post('categories/force-delete/{categoryId}',[CategoryController::class, 'forceDelete'])->name('category.forceDelete');
+
+    // sizes
+    Route::post('products/add-size-to-product/{productId}', [SizeController::class, 'addSizeToProduct'])->name('add-size-to-product');
+    Route::post('products/{productId}/delete-size/{sizeId}', [SizeController::class, 'deleteSizeFromProduct'])->name('delete-size');
+    Route::get('products/sizes', [SizeController::class, 'getAllSizes'])->name('getAllSizes');
+    Route::post('products/add-size', [SizeController::class, 'addNewSize'])->name('add-new-size');
+    Route::post('products/sizes/edit/{sizeId}', [SizeController::class, 'editSize'])->name('edit-size');
+
 });
