@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\App\CategoryController;
+use App\Http\Controllers\Api\App\ColorController;
 use App\Http\Controllers\Api\App\ProductController;
 use App\Http\Controllers\Api\App\SizeController;
 
@@ -29,4 +30,5 @@ Route::get('/products/show/{product}', [ProductController::class, 'show']);
 // sizes
 Route::get('products/sizes/{productId}', [SizeController::class, 'avilableSizesForProduct'])->name('getAvilableSizesForProduct');
 
-
+// colors
+Route::get('products/{productId}/colors', [ColorController::class, 'getAllAvilableColorsForProduct'])->name('all-avilable-colors');

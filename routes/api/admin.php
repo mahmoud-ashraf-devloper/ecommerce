@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\Admin\Auth\LoginController;
 use App\Http\Controllers\Api\Admin\DashboardController;
 use App\Http\Controllers\Api\App\CategoryController;
+use App\Http\Controllers\Api\App\ColorController;
 use App\Http\Controllers\Api\App\ProductController;
 use App\Http\Controllers\Api\App\SizeController;
 use Illuminate\Support\Facades\Route;
@@ -29,8 +30,8 @@ Route::group([
 
     // Products
     Route::post('products/store', [ProductController::class, 'store'])->name('add-new-product');
-    Route::post('products/update/images/{productImage}', [ProductController::class, 'updateProductImages']);
-    Route::post('products/update-set-main/images/{imageId}', [ProductController::class, 'setImageAsMainImage']);
+    Route::post('products/{productId}/update/images/{productImageId}', [ProductController::class, 'updateProductImages']);
+    Route::post('products/{productId}/update-set-main/images/{imageId}', [ProductController::class, 'setImageAsMainImage']);
     Route::post('products/update/{productId}', [ProductController::class, 'updateProductData']);
     Route::post('products/destroy/{productId}', [ProductController::class, 'destroy']);
     Route::get('products/trashed', [ProductController::class, 'getTrashedProducts']);
@@ -50,4 +51,16 @@ Route::group([
     Route::post('products/add-size', [SizeController::class, 'addNewSize'])->name('add-new-size');
     Route::post('products/sizes/edit/{sizeId}', [SizeController::class, 'editSize'])->name('edit-size');
 
+
+    // colors
+    Route::get('colors', [ColorController::class, 'index'])->name('get-all-colors');
+    Route::post('colors', [ColorController::class, 'store'])->name('add-new-color');
+    Route::post('colors/{colorId}/delete', [ColorController::class, 'addToTrash'])->name('color-add-to-trash');
+    Route::get('colors/trashed', [ColorController::class, 'getTrashedColors'])->name('get-trashed-colors');
+    Route::post('colors/{colorId}/force-delete', [ColorController::class, 'forceDelete'])->name('force-delete-color');
+    Route::post('colors/{colorId}/restore', [ColorController::class, 'restoreTrashedColor'])->name('restore-color');
+
+    // colors-products
+    Route::post('products/{productsId}/add-color/{colorId}', [ColorController::class, 'addColorsToProduct'])->name('add-color-to-product');
+    Route::post('products/{productsId}/remove-color/{colorId}', [ColorController::class, 'removeColorFromProduct'])->name('add-color-to-product');
 });

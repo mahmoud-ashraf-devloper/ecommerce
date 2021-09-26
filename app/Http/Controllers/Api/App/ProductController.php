@@ -4,11 +4,9 @@ namespace App\Http\Controllers\Api\App;
 
 use App\Http\Controllers\Controller;
 use App\Http\Resources\{
-    CategoryResource,
     ProductCollection,
     ProductResource,
     ImageResource,
-    SizeResource,
 };
 use App\Models\{
     Product,
@@ -19,7 +17,9 @@ use App\Traits\{
     upload
 };
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use App\Models\Validations\ProductValidation;
 
 class ProductController extends Controller
 {
@@ -61,16 +61,9 @@ class ProductController extends Controller
         $moreImagesUrls = [];
 
         try {
-            // validation 
-            $rules = [
-                'title'=> 'required|min:6',
-                'main_image'=> 'required|image|mimes:jpeg,png', 
-                'description'=> 'required|min:10',
-                'more_images' => 'required',
-                'more_images.*' => 'image|mimes:jpeg,png',
-            ];
+            // validations
+            $validator = (new ProductValidation())->validator($request->all());
 
-            $validator = Validator::make($request->all(), $rules);
             if($validator->fails()){
                 return $this->error($validator->errors(), 400, 'Validation error');
             }
@@ -87,25 +80,25 @@ class ProductController extends Controller
 
 
                 // Validation is ok and images uploaded successfully
-
-                $response['product'] = new ProductResource(Product::create($validator->validated()));
-                $imageModelData[] = [
-                    'product_id' => $response['product']->id,
-                    'image_url'  => $mainImageUrl,
-                    'is_main_image'   => true,
-                ];
-
-                // adding more images
-                foreach($moreImagesUrls as $url){
+                DB::transaction(function() use ($imageModelData, $moreImagesUrls, $mainImageUrl, $validator) {
+                    $response['product'] = new ProductResource(Product::create($validator->validated()));
                     $imageModelData[] = [
                         'product_id' => $response['product']->id,
-                        'image_url'  => $url,
+                        'image_url'  => $mainImageUrl,
+                        'is_main_image'   => true,
                     ];
-                }
-
-                foreach($imageModelData as $modelData){
-                    $response['images'][] = new ImageResource(ProductImage::Create($modelData));
-                }
+    
+                    // adding more images
+                    foreach($moreImagesUrls as $url){
+                        $imageModelData[] = [
+                            'product_id' => $response['product']->id,
+                            'image_url'  => $url,
+                        ];
+                    }
+                    foreach($imageModelData as $modelData){
+                        $response['images'][] = new ImageResource(ProductImage::Create($modelData));
+                    }
+                });
                 return $this->success($response, 'Product Uploaded Successfully');
             }
         }catch (\Exception $e) {
@@ -140,19 +133,25 @@ class ProductController extends Controller
         }
     }
 
-    public function updateProductImages(Request $request, $productImage)
+    public function updateProductImages(Request $request, $productId, $productImageId)
     {
         try {
-            $image = ProductImage::find($productImage);
-            if(!$image){
-                return $this->error([],404, 'Image Does not Exists');
+            $product = Product::find($productId);
+
+            if(!$product){
+                return $this->error([],404, 'The Product Does not Exists');
             }
+            dd($product->productImages->pluck('id'));
+            if(!in_array($productImageId, $product->productImages->pluck('id')->toArray())){
+                return $this->error([],404, 'This image does not exists');
+            }
+
+            $image = ProductImage::find($productImageId);
 
             $oldImagePath = $image->image_url;
 
-            $rules = ['image' => 'required|image|mimes:jpeg,jpg,png',];
+            $validator = (new ProductValidation())->singleImageValidator($request->only('image'));
 
-            $validator = Validator::make($request->only('image'), $rules);
             if($validator->fails()){
                 return $this->error($validator->errors() ,400, 'validation error');
             }
@@ -172,18 +171,33 @@ class ProductController extends Controller
         }
     }
 
-    public function setImageAsMainImage($imageId)
+    public function setImageAsMainImage($productId, $imageId)
     {
         try {
+            $product = Product::find($productId);
+
+            if(!$product){
+                return $this->error([],404, 'The Product Does not Exists');
+            }
+
+            if(!in_array($imageId, $product->productImages()->pluck('id')->toArray())){
+                return $this->error([],404, 'This image does not exists');
+            }
+
             $newMainImage = ProductImage::find($imageId);
-            // setting old image to false 
-            $this->getProductMainImage($newMainImage->product_id)->update(['is_main_image' => false]);
-            // setting new image to true 
-            $newMainImage->update(['is_main_image' => true]);
+            
+            DB::transaction(function() use($newMainImage,$productId) {
+                $oldMainImage = $this->getProductMainImage($productId);
+                $oldMainImage->is_main_image = false;
+                $oldMainImage->save();
+
+                $newMainImage->is_main_image = true;
+                $newMainImage->save();
+            });
 
             return $this->success(new ImageResource(ProductImage::find($imageId)),'Image Updated Successfully');
         } catch (\Exception $e) {
-            return $this->error([],404, 'This Image does not exists');
+            return $this->error($e->getMessage(),500);
         }
 
     }
@@ -201,12 +215,13 @@ class ProductController extends Controller
     {
         try {
             $productData = Product::find($productId);
-
-            $validator = Validator::make($request->all(),[
-                'title' => 'string|min:10|max:255',
-                'description' => 'string|min:255',
-                'published' => 'bool',
-            ]);
+            if(!$productData){
+                return $this->error([], 404,'The Product which you are trying to update is now exists');
+            }
+            if(empty($request->all())){
+                return $this->error([], 400,'There is nothing to update');
+            }
+            $validator = (new ProductValidation())->validator($request->all(), true);
 
             if($validator->fails()){
                 return $this->error($validator->errors(), 400, 'Validation error');
@@ -237,12 +252,15 @@ class ProductController extends Controller
             }
             $productImages = $product->productImages;
 
-            if($product->delete()){
-                $productImages->map(function($image){
-                    $image->delete();
-                });
-                return $this->success($product);
-            }
+            DB::transaction(function() use($product, $productImages){    
+                if($product->delete()){
+                    $productImages->map(function($image){
+                        $image->delete();
+                    });
+                }
+            });
+            return $this->success($product);
+
         }catch (\Exception $e) {
             return $this->error($e->getMessage());
         }
@@ -266,7 +284,7 @@ class ProductController extends Controller
                 return $this->error('This Product Does not exists');
             }
             $productImages = $product->productImages; 
-            $imagesUrls = $productImages->pluck('image_url')->toArray();
+            $imagesUrls    = $productImages->pluck('image_url')->toArray();
             $productImages->map(function($q){
                 $q->forceDelete();
             });

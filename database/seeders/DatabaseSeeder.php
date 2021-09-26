@@ -7,6 +7,7 @@ use App\Models\{
     User,
     Admin,
     Category,
+    Color,
     Product,
     Size
 };
@@ -26,6 +27,7 @@ class DatabaseSeeder extends Seeder
         $categoriesNum = 20;
         $sizesNum = 20;
         $productNum = 100;
+        $colorNum = 10;
         $pivotProductSizeNum = $productNum * 2;
         $pivotCategoryProductNum = $productNum * 2;
 
@@ -46,11 +48,12 @@ class DatabaseSeeder extends Seeder
         Category::factory($categoriesNum)->create();
         Size::factory($sizesNum)->create();
         Product::factory($productNum)->create();
+        Color::factory($colorNum)->create();
 
         // for($i = 1; $i<= $pivotProductSizeNum; $i++){
         //     DB::table('product_size')->insert([
         //         'size_id' => rand(1, $sizesNum),
-        //         'product_id' => rand(1, $productNum),
+        //         'product_id' => $i,
         //     ]);
         // }
 

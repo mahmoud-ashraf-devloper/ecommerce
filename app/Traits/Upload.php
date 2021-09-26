@@ -18,7 +18,7 @@ trait Upload
                 $imagesUrls[] = $imageUrl;
             }
             return (count($images) === count($imagesUrls)) ? $imagesUrls : false;
-        } catch (\Exception $e) {
+        } catch (\Throwable $th) {
             return false;
         }
     }
@@ -29,7 +29,7 @@ trait Upload
             $name = date('YmdHis') . rand(1, 999999) . '.' . $image->getClientOriginalExtension();;
             $imageUrl = $image->storeAs($path, $name, 'public');
             return $imageUrl;
-        } catch (\Exception $e) {
+        } catch (\Throwable $th) {
             return false;
         }
     }
