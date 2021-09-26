@@ -17,6 +17,9 @@ class CreateProductsTable extends Migration
             $table->id();
             $table->string('title');
             $table->text('description');
+            $table->double('price');
+            
+            $table->integer('discount')->default(0);
             $table->boolean('published')->default(0);
             
             $table->softDeletes();

@@ -25,6 +25,7 @@ class ProductFactory extends Factory
             'title' => $this->faker->text(50), 
             'description' => $this->faker->paragraphs(5, true), 
             'published' => $this->faker->boolean(70),
+            'price'     => 665.1583,
         ];
     }
 }

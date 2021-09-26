@@ -12,6 +12,8 @@ class ProductValidation
     {
         return Validator::make($atterebutes,[
             'title'=> [Rule::when($update,'sometimes'),'required','min:6'],
+            'price'=> [Rule::when($update,'sometimes'),'required'],
+            'discount'=> ['integer'],
             'main_image'=> [Rule::when($update,'sometimes'),'required','image','mimes:jpeg,png'], 
             'description'=> [Rule::when($update,'sometimes'),'required','min:10'],
             'more_images' => [Rule::when($update,'sometimes'),'required'],

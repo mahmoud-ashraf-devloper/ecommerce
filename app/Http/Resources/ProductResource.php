@@ -18,6 +18,8 @@ class ProductResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'description' => $this->description,
+            'price'     => $this->price.'$',
+            'discount'     => $this->discount,
             'created_at' => $this->created_at->diffForHumans(),
             'category' => CategoryResource::collection($this->whenLoaded('categories')),
             'sizes'=> SizeResource::collection($this->whenLoaded('sizes')),
