@@ -24,8 +24,8 @@ Route::get('categories',[CategoryController::class, 'index'])->name('category.in
 
 
 // Products Routes
-Route::get('/products', [ProductController::class, 'index']);
-Route::get('/products/show/{product}', [ProductController::class, 'show']);
+Route::get('products', [ProductController::class, 'index']);
+Route::get('products/show/{product}', [ProductController::class, 'show']);
 
 // sizes
 Route::get('products/sizes/{productId}', [SizeController::class, 'avilableSizesForProduct'])->name('getAvilableSizesForProduct');

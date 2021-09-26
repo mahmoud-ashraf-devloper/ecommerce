@@ -9,6 +9,7 @@ use App\Http\Resources\{
     ProductCollection
 };
 use App\Models\Category;
+use App\Models\Product;
 use App\Traits\ApiResponse;
 
 use Illuminate\Http\Request;
@@ -65,6 +66,66 @@ class CategoryController extends Controller
         }
     }
 
+    /**
+     * add category to product.
+     *
+     * @param  $categoryId, $productId
+     * @return \Illuminate\Http\Response
+     */
+    public function addCategoryToProduct($categoryId, $productId)
+    {  
+        try {
+            $category = $this->categoryExists($categoryId);
+            if(!$category){
+                return $this->error([], 404,'Category Does not Exists');
+            }
+
+            $product = $this->productExists($productId);
+            if(! $product){
+                return $this->error([], 404,'Product Does not Exists');
+            }
+
+            if($this->productHasCategory($product, $categoryId)){
+                return $this->error([], 400,'The Product Is already has this category');
+            }
+
+            $product->categories()->attach($categoryId);
+            return $this->success([],'Category added to the product successfully');
+        } catch (\Exception $ex) {
+            return $this->error($ex->getMessage(),500 ,'Something went Wrong');
+        }
+    }
+
+    /**
+     * remove category from product.
+     *
+     * @param  $categoryId, $productId
+     * @return \Illuminate\Http\Response
+     */
+    public function removeCategoryToProduct($categoryId, $productId)
+    {  
+        try {
+            $category = $this->categoryExists($categoryId);
+            if(!$category){
+                return $this->error([], 404,'Category Does not Exists');
+            }
+
+            $product = $this->productExists($productId);
+            if(! $product){
+                return $this->error([], 404,'Product Does not Exists');
+            }
+
+            if(!$this->productHasCategory($product, $categoryId)){
+                return $this->error([], 400,'The Product Is already does not has category');
+            }
+
+            $product->categories()->detach($categoryId);
+            return $this->success([],'Category removed from the product successfully');
+        } catch (\Exception $ex) {
+            return $this->error($ex->getMessage(),500 ,'Something went Wrong');
+        }
+    }
+
 
     /**
      * Display a specified category with it's products.
@@ -75,7 +136,7 @@ class CategoryController extends Controller
     public function showCategoryWithProducts($categoryId)
     {
         try {
-            $category = Category::find($categoryId);
+            $category = $this->categoryExists($categoryId);
             if(!$category){
                 return $this->error([],404,'Category Not Found');
             }
@@ -101,7 +162,7 @@ class CategoryController extends Controller
     public function edit(Request $request,$categoryId)
     {
         try {
-            $category = Category::find($categoryId);
+            $category = $this->categoryExists($categoryId);
             if(!$category){
                 return $this->error('Category Does not exists',404,'category not found');
             }
@@ -137,7 +198,7 @@ class CategoryController extends Controller
     public function destroy($categoryId)
     {
         try {
-            $category = Category::find($categoryId);
+            $category = $this->categoryExists($categoryId);
             if(!$category){
                 return $this->error('Category Does not exists',404,'category not found');
             }
@@ -174,5 +235,31 @@ class CategoryController extends Controller
         }
     }
 
+    
+    private function categoryExists($categoryId)
+    {
+        $category = Category::find($categoryId);
+        if(!$category){
+            return false;
+        }
+        return $category;
+    }
+
+    private function productExists($productId)
+    {
+        $product = Product::find($productId);
+        if(!$product){
+            return false;
+        }
+        return $product;
+    }
+
+    private function productHasCategory($product, $categoryId)
+    {
+        if(in_array($categoryId, $product->categories->pluck('id')->toArray())){
+            return true;
+        }
+        return false;
+    }
 
 }

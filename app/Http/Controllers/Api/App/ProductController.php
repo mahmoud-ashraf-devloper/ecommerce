@@ -118,16 +118,15 @@ class ProductController extends Controller
     {
         try {            
             $product = Product::find($product);
-            if($product){
-                $product =  new ProductResource($product->load(['categories', 'productImages','sizes']));
-                
-                $response = [
-                    'product' => $product,
-                ];
-                return $this->success($response);
-            }else {
+            if(!$product){
                 return $this->error([], 404, 'Product Not found');
             }
+            $product =  new ProductResource($product->load(['categories', 'productImages','sizes', 'colors']));
+            $response = [
+                'product' => $product,
+            ];
+            return $this->success($response);
+            
         } catch (\Exception $e) {
             return throw ($e);
         }

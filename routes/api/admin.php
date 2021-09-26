@@ -43,9 +43,11 @@ Route::group([
     Route::post('categories/update/{categoryId}',[CategoryController::class, 'edit'])->name('category.update');
     Route::post('categories/destroy/{categoryId}',[CategoryController::class, 'destroy'])->name('category.delete');
     Route::post('categories/force-delete/{categoryId}',[CategoryController::class, 'forceDelete'])->name('category.forceDelete');
+    Route::post('categories/{categoryId}/products/{productId}',[CategoryController::class, 'addCategoryToProduct'])->name('add-category-to-product');
+    Route::post('categories/{categoryId}/products/{productId}/remove',[CategoryController::class, 'removeCategoryToProduct'])->name('remove-category-to-product');
 
     // sizes
-    Route::post('products/add-size-to-product/{productId}', [SizeController::class, 'addSizeToProduct'])->name('add-size-to-product');
+    Route::post('products/{productId}/add-size-to-product/{sizeId}', [SizeController::class, 'addSizeToProduct'])->name('add-size-to-product');
     Route::post('products/{productId}/delete-size/{sizeId}', [SizeController::class, 'deleteSizeFromProduct'])->name('delete-size');
     Route::get('products/sizes', [SizeController::class, 'getAllSizes'])->name('getAllSizes');
     Route::post('products/add-size', [SizeController::class, 'addNewSize'])->name('add-new-size');

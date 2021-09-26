@@ -21,6 +21,7 @@ class ProductResource extends JsonResource
             'created_at' => $this->created_at->diffForHumans(),
             'category' => CategoryResource::collection($this->whenLoaded('categories')),
             'sizes'=> SizeResource::collection($this->whenLoaded('sizes')),
+            'colors'=> ColorResource::collection($this->whenLoaded('colors')),
             'image' => ImageResource::collection($this->whenLoaded('productImages')),
         ]; 
     }

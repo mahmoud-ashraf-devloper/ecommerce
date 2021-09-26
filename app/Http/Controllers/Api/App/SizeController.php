@@ -89,28 +89,26 @@ public function getAllSizes()
         return $this->error($e->getMessage());
      }
  }
- public function addSizeToProduct($productId, Request $request)
+ public function addSizeToProduct($productId, $sizeId, Request $request)
  {
-    $product = Product::find($productId);
-    if(!$product){
-        return $this->error('This Product Does not exists',404);
-    }
-
-    $validator = Validator::make($request->only('size_id'),[
-        'size_id' => 'required|exists:sizes,id'
-    ]);
-
-    if($validator->fails()){
-        return $this->error($validator->errors(), 400, "validation error");
-    }
-
     try{
-        $product->sizes()->attach($validator->validated());
+        $product = Product::find($productId);
+        if(!$product){
+            return $this->error('This Product Does not exists',404);
+        }
+
+        $size = Size::find($sizeId);
+        if(! $size){
+            return $this->error('This Size Does not exists',404);
+        }
+        if(in_array($sizeId, $product->sizes->pluck('id')->toArray())){
+            return $this->error('This Size Is Already Attached to the product',400);
+        }
+        $product->sizes()->attach($sizeId);
+        
         return $this->success([],'Size added successfully');
     }catch(\Exception $e){
-        if($e->getCode() == 23000){ //sql error "Duplicate entary"
-            return $this->error('Duplicate Entary', 400, 'Record is already exists');
-        }
+        return $this->error(['code'=> $e->getCode()],500, $e->getMessage());
     }
 
 }
