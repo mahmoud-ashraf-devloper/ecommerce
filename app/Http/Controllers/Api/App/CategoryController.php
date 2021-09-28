@@ -9,16 +9,16 @@ use App\Http\Resources\{
     ProductCollection
 };
 use App\Models\Category;
-use App\Models\Product;
 use App\Traits\ApiResponse;
-
+use App\Traits\CategoryHelper;
+use App\Traits\ProductHelper;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 
 
 class CategoryController extends Controller
 {
-    use ApiResponse;
+    use ApiResponse, CategoryHelper, ProductHelper;
 
     /**
      * Display a listing of the resource.
@@ -233,33 +233,6 @@ class CategoryController extends Controller
         } catch (\Exception $e) {
             return $this->error($e->getMessage());
         }
-    }
-
-    
-    private function categoryExists($categoryId)
-    {
-        $category = Category::find($categoryId);
-        if(!$category){
-            return false;
-        }
-        return $category;
-    }
-
-    private function productExists($productId)
-    {
-        $product = Product::find($productId);
-        if(!$product){
-            return false;
-        }
-        return $product;
-    }
-
-    private function productHasCategory($product, $categoryId)
-    {
-        if(in_array($categoryId, $product->categories->pluck('id')->toArray())){
-            return true;
-        }
-        return false;
     }
 
 }

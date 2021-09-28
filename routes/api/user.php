@@ -1,8 +1,8 @@
 <?php
 
+use App\Http\Controllers\Api\App\CartController;
 use App\Http\Controllers\Api\User\Auth\LoginController;
 use App\Http\Controllers\Api\User\Auth\RegisterController;
-use App\Http\Controllers\Api\User\DashboardController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -19,12 +19,14 @@ use Illuminate\Support\Facades\Route;
 
 
 Route::post('user/login', [LoginController::class, 'userLogin'])->name('user-login');
-Route::post('/user/register', [RegisterController::class, 'userRegister'])->name('user-register');
+Route::post('user/register', [RegisterController::class, 'userRegister'])->name('user-register');
 
 Route::group([
-    'prefix' => 'user',
+    'prefix' => 'users',
     'middleware' => ['auth:user-api', 'scopes:user'],
     'as' => 'user',
 ], function(){
-    Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    Route::get('cart', [CartController::class, 'index'])->name('get-shpping-cart-items');
+    Route::post('cart/add/{productId}', [CartController::class, 'addToCart'])->name('add-to-cart');
+    Route::post('cart/delete/{productId}', [CartController::class, 'removeFromTheCart'])->name('remove-to-cart');
 });

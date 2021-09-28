@@ -6,6 +6,7 @@ use Illuminate\Database\Seeder;
 use App\Models\{
     User,
     Admin,
+    Cart,
     Category,
     Color,
     Product,
@@ -29,6 +30,7 @@ class DatabaseSeeder extends Seeder
         $productNum = 100;
         $colorNum = 10;
         $pivotProductSizeNum = $productNum * 2;
+        $cartItems = 200;
         $pivotCategoryProductNum = $productNum * 2;
 
 
@@ -49,6 +51,7 @@ class DatabaseSeeder extends Seeder
         Size::factory($sizesNum)->create();
         Product::factory($productNum)->create();
         Color::factory($colorNum)->create();
+        Cart::factory($cartItems)->create();
 
         // for($i = 1; $i<= $pivotProductSizeNum; $i++){
         //     DB::table('product_size')->insert([

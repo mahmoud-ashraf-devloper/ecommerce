@@ -7,6 +7,8 @@ use App\Http\Resources\ColorResource;
 use App\Models\Color;
 use App\Models\Product;
 use App\Traits\ApiResponse;
+use App\Traits\ColorHelper;
+use App\Traits\ProductHelper;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +17,7 @@ use Illuminate\Support\Facades\Validator;
 
 class ColorController extends Controller
 {   
-    use ApiResponse;
+    use ApiResponse, ColorHelper, ProductHelper;
 
     /**
      * get all colors
@@ -169,7 +171,7 @@ class ColorController extends Controller
                 return $this->error([],404, 'Color Does not exists');
             }
 
-            if($this->colorExistsOnProduct($product ,$colorId)){
+            if($this->productHasColor($product ,$colorId)){
                 return $this->error([],404, 'Color is Already Exists On the product');
             }
     
@@ -202,7 +204,7 @@ class ColorController extends Controller
                 return $this->error([],404, 'Color Does not exists');
             }
 
-            if(! $this->colorExistsOnProduct($product ,$colorId)){
+            if(! $this->productHasColor($product ,$colorId)){
                 return $this->error([],404, 'Color is Already does not Exists On the product');
             }
 
@@ -234,31 +236,6 @@ class ColorController extends Controller
         }
     }
 
-    private function colorExists($colorId)
-    {
-        $color = Color::find($colorId);
-        if(!$color){
-            return false;
-        }
-        return $color;
-    }
 
-    private function productExists($productId)
-    {
-        $product = Product::find($productId);
-        if(!$product){
-            return false;
-        }
 
-        return $product;
-    }
-
-    
-    private function colorExistsOnProduct($product, $colorId)
-    {
-        if(in_array($colorId, $product->colors->pluck('id')->toArray())){
-            return true;
-        }
-        return false;
-    }
 }
