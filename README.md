@@ -13,3 +13,8 @@
             email: admin@admin.com
             password : password
        
+## Note For paypal integration
+
+The server side is done but there is some changes have to be done in the frontend.
+
+You just need to put the paypal button and calling a method to create the order and another one to capture it and it's done, both end points are provided in the documentaion. 
